@@ -1,71 +1,64 @@
-import { test, expect } from '@playwright/test';
-
+import { test, expect, Page} from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-    await page.goto('https://www.saucedemo.com/v1/')
+    await page.goto('https://www.saucedemo.com/')
     await expect(page).toHaveTitle('Swag Labs');
 });
 
+const locators = {
+    username: '#user-name',
+    password: '#password',
+    submit: '#login-button',
+    errorButton: '.error-button',
+    logo: '.login_logo'
+}
 
-test('logo aparece corretamente', async ({ page }) => {
-    const logoElement = page.locator('.login_logo')
-    await expect(logoElement).toBeVisible()
-})
+async function login(page: Page, username: string, password: string) {
+  await page.locator(locators.username).fill(username);
+  await page.locator(locators.password).fill(password);
+  await page.locator(locators.submit).click();
+}
 
-test('faz login com sucesso', async ({ page }) => {
-    const usernameInput = page.locator('#user-name')
-    const passwordInput = page.locator('#password')
-    const submitButton = page.locator('#login-button')
-
-    await usernameInput.fill('standard_user')
-    await passwordInput.fill('secret_sauce')
-    await submitButton.click()
+test.describe('Login', () => {
+    test('logo aparece corretamente', async ({ page }) => {
+        const logoElement = page.locator(locators.logo)
+        await expect(logoElement).toBeVisible()
+    })
     
-    await expect(page).toHaveURL('https://www.saucedemo.com/v1/inventory.html')
-})
+    test('com sucesso', async ({ page }) => {
 
-test('login sem sucesso', async ({ page }) => {
-    const usernameInput = page.locator('#user-name')
-    const passwordInput = page.locator('#password')
-    const submitButton = page.locator('#login-button')
+        await login(page, 'standard_user', 'secret_sauce')
+        
+        await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html')
+    })
+    
+    test('sem sucesso', async ({ page }) => {
 
-    await usernameInput.fill('standard_user')
-    await passwordInput.fill('secret')
-    await submitButton.click()
+        await login(page, 'standard_user', 'secret')
+    
+        const errorButton = page.locator(locators.errorButton)
+        await expect(errorButton).toBeVisible()
+    
+        await expect(page.getByText('Epic sadface: Username and password do not match any user in this service')).toBeVisible()
+    })
+    
+    test('sem preencher campo de senha', async ({ page }) => {
 
-    const errorButton = page.locator('.error-button')
-    await expect(errorButton).toBeVisible()
+        await login(page, 'standard_user', '')
+        
+        const errorButton = page.locator(locators.errorButton)
+        await expect(errorButton).toBeVisible()
+    
+        await expect(page.getByText('Epic sadface: Password is required')).toBeVisible()
+    })
+    
+    test('sem preencher campo de username', async ({ page }) => {
+        
+        await login(page, '', 'secret_sauce')
 
-    await expect(page.getByText('Epic sadface: Username and password do not match any user in this service')).toBeVisible()
-})
-
-test('tentativa de login sem senha', async ({ page }) => {
-    const usernameInput = page.locator('#user-name')
-    const passwordInput = page.locator('#password')
-    const submitButton = page.locator('#login-button')
-
-    await usernameInput.fill('standard_user')
-    await passwordInput.fill('')
-    await submitButton.click()
-
-    const errorButton = page.locator('.error-button')
-    await expect(errorButton).toBeVisible()
-
-    await expect(page.getByText('Epic sadface: Password is required')).toBeVisible()
-})
-
-
-test('tentativa de login sem username', async ({ page }) => {
-    const usernameInput = page.locator('#user-name')
-    const passwordInput = page.locator('#password')
-    const submitButton = page.locator('#login-button')
-
-    await usernameInput.fill('')
-    await passwordInput.fill('123')
-    await submitButton.click()
-
-    const errorButton = page.locator('.error-button')
-    await expect(errorButton).toBeVisible()
-
-    await expect(page.getByText('Epic sadface: Username is required')).toBeVisible()
+        const errorButton = page.locator(locators.errorButton)
+        await expect(errorButton).toBeVisible()
+    
+        await expect(page.getByText('Epic sadface: Username is required')).toBeVisible()
+    })
 })
