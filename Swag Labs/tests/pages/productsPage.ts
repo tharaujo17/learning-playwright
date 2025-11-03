@@ -27,7 +27,7 @@ export class ProductPage {
         await expect(this.page).toHaveURL('https://www.saucedemo.com/inventory.html')
     }
 
-    async assertLogoVisible() {
+    async assertLogoIsVisible() {
         await expect(this.logo).toBeVisible()
     }
 
