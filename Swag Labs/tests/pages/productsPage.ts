@@ -16,7 +16,7 @@ export class ProductPage {
         this.logo = page.locator('.app_logo')
         this.productList = page.locator('.inventory_item')
         this.shoppingCartIcon = page.locator('.shopping_cart_link')
-        this.productHeaderText = page.locator('.product_label')
+        this.productHeaderText = page.locator('[data-test="title"]')
         this.firstAddButton = page.locator('button:has-text("Add to cart")').first()
         this.firstRemoveButton = page.locator('button:has-text("Remove")').first()
         this.cartBadge = page.locator('.shopping_cart_badge')
