@@ -48,28 +48,28 @@ test.describe('Products page', () => {
         await productPage.assertCartCountIs(0)
     });
 
-    test('Verifica se o filtro de A to Z está ordenando corretamente', async ({ page }) => {
+    test('Verifica se o filtro de A to Z está ordenando corretamente', async () => {
         await productPage.selectSortOption('az')
         await productPage.getProductNames()
 
         await productPage.assertSortedByName('asc')
     })
 
-    test('Verifica se o filtro de Z to A está ordenando corretamente', async ({ page }) => {
+    test('Verifica se o filtro de Z to A está ordenando corretamente', async () => {
         await productPage.selectSortOption('za')
         await productPage.getProductNames()
 
         await productPage.assertSortedByName('desc')
     })
 
-    test('Verifica se o filtro de Price (low to high) está ordenando corretamente', async ({ page }) => {
+    test('Verifica se o filtro de Price (low to high) está ordenando corretamente', async () => {
         await productPage.selectSortOption('lohi')
         await productPage.getProductsPrices()
 
         await productPage.assertSortedByPrice('asc')
     })
 
-    test('Verifica se o filtro de Price (high to low) está ordenando corretamente', async ({ page }) => {
+    test('Verifica se o filtro de Price (high to low) está ordenando corretamente', async () => {
         await productPage.selectSortOption('hilo')
         await productPage.getProductsPrices()
 
