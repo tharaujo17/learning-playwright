@@ -1,108 +1,62 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../pages/loginPage';
+import { CheckoutStepOne } from '../pages/checkoutStepOnePage';
 
-test.beforeEach(async ({ page }) => {
-    await page.goto('https://www.saucedemo.com/v1/')
-    await expect(page).toHaveTitle('Swag Labs');
+test.describe('Checkout Step One', () => {
+    let loginPage: LoginPage
+    let checkoutStepOnePage: CheckoutStepOne
 
-    const usernameInput = page.locator('#user-name')
-    const passwordInput = page.locator('#password')
-    const submitButton = page.locator('#login-button')
-    const cartIcon = page.locator('.fa-shopping-cart')
-    const checkoutButton = page.locator('.checkout_button')
+    test.beforeEach(async ({page}) => {
+        loginPage = new LoginPage(page)
+        checkoutStepOnePage = new CheckoutStepOne(page)
+        await loginPage.goto()
+        await loginPage.login('standard_user', 'secret_sauce')
+        await checkoutStepOnePage.assertOnCheckoutStepOne()
+    })
 
-    await usernameInput.fill('standard_user')
-    await passwordInput.fill('secret_sauce')
-    await submitButton.click()
-
-    await cartIcon.click()
-    await checkoutButton.click()
-
-    await expect(page).toHaveURL('https://www.saucedemo.com/v1/checkout-step-one.html')
-});
-
-test('Preenche todos os dados e clica no botão Continue', async ({page}) => {
-    const firstNameInput = page.locator('#first-name')
-    const lastNameInput = page.locator('#last-name')
-    const postalCodeInput = page.locator('#postal-code')
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await firstNameInput.fill('Name')
-    await lastNameInput.fill('Last Name')
-    await postalCodeInput.fill('123')
-
-    await continueButton.click()
-
-    await expect(page).toHaveURL('https://www.saucedemo.com/v1/checkout-step-two.html')
-})
-
-test('Não preenche nenhum campo', async ({page}) => {
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await continueButton.click()
-
-    await expect(page.locator('.error-button')).toBeVisible()
-
-    await expect(page.getByText('Error: First Name is required')).toBeVisible()
-})
-
-test('Preenche First Name mas não preenche os outros campos', async ({page}) => {
-    const firstNameInput = page.locator('#first-name')
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await firstNameInput.fill('Name')
-
-    await continueButton.click()
-
-    await expect(page.locator('.error-button')).toBeVisible()
-
-    await expect(page.getByText('Error: Last Name is required')).toBeVisible()
-})
-
-test('Preenche Last Name mas não preenche os outros campos', async ({page}) => {
-    const lastNameInput = page.locator('#last-name')
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await lastNameInput.fill('Last Name')
-
-    await continueButton.click()
-
-    await expect(page.locator('.error-button')).toBeVisible()
-
-    await expect(page.getByText('Error: First Name is required')).toBeVisible()
-})
-
-test('Preenche Postal Code mas não preenche os outros campos', async ({page}) => {
-    const postalCodeInput = page.locator('#postal-code')
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await postalCodeInput.fill('123')
-
-    await continueButton.click()
-
-    await expect(page.locator('.error-button')).toBeVisible()
-
-    await expect(page.getByText('Error: First Name is required')).toBeVisible()
-})
-
-test('Preenche First Name e Last Name mas não preenche o campo de Postal Code', async ({page}) => {
-    const firstNameInput = page.locator('#first-name')
-    const lastNameInput = page.locator('#last-name')
-    const continueButton = page.getByRole('button', { name: 'CONTINUE'} )
-
-    await firstNameInput.fill('Name')
-    await lastNameInput.fill('Last Name')
-
-    await continueButton.click()
-
-    await expect(page.locator('.error-button')).toBeVisible()
-
-    await expect(page.getByText('Error: Postal Code is required')).toBeVisible()
-})
-
-test('Ao clicar no botão Cancel é enviado para a página do Carrinho', async ({page}) => {
-    const cancelButton = page.getByRole('link', { name: 'CANCEL' } )
-
-    await cancelButton.click()
-
-    await expect(page).toHaveURL('https://www.saucedemo.com/v1/cart.html')
+    test('Preenche todos os dados e clica no botão Continue', async () => {
+        await checkoutStepOnePage.fillCheckoutInputs('First Name', 'Last Name', '123')
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.assertClickContinueBtnRedirectsToStepTwoPage('https://www.saucedemo.com/checkout-step-two.html')
+    })
+    
+    test('Não preenche nenhum campo', async () => {
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.fillCheckoutInputs('', '', '')
+        await checkoutStepOnePage.assertErrorBtnIsVisible()
+        await checkoutStepOnePage.assertErrorText('Error: First Name is required')
+    })
+    
+    test('Preenche First Name mas não preenche os outros campos', async () => {
+        await checkoutStepOnePage.fillCheckoutInputs('Name', '', '')
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.assertErrorBtnIsVisible()
+        await checkoutStepOnePage.assertErrorText('Error: Last Name is required')
+    })
+    
+    test('Preenche Last Name mas não preenche os outros campos', async () => {
+        await checkoutStepOnePage.fillCheckoutInputs('', 'Last Name', '')
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.assertErrorBtnIsVisible() 
+        await checkoutStepOnePage.assertErrorText('Error: First Name is required')
+    })
+    
+    test('Preenche Postal Code mas não preenche os outros campos', async () => {
+        await checkoutStepOnePage.fillCheckoutInputs('', '', '123')
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.assertErrorBtnIsVisible() 
+        await checkoutStepOnePage.assertErrorText('Error: First Name is required')
+    })
+    
+    test('Preenche First Name e Last Name mas não preenche o campo de Postal Code', async () => {
+        await checkoutStepOnePage.fillCheckoutInputs('First Name', 'Last Name', '')
+        await checkoutStepOnePage.continueBtn.click()
+        await checkoutStepOnePage.assertErrorBtnIsVisible() 
+        await checkoutStepOnePage.assertErrorText('Error: Postal Code is required')
+    })
+    
+    test('Ao clicar no botão Cancel é enviado para a página do Carrinho', async () => {
+        await checkoutStepOnePage.cancelBtn.click()
+        await checkoutStepOnePage.assertClickCancelBtnRedirectsToCartPage('https://www.saucedemo.com/cart.html')
+    })
 })
